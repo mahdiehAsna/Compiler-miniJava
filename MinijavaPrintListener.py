@@ -28,7 +28,7 @@ class MiniJavaPrintListener(MinijavaListener):
     def get_bytecode(self):
         return self.code
 
-    def enterGoal(self, ctx: MinijavaParser.GoalContext):
+    def enterMainClass(self, ctx:MinijavaParser.MainClassContext):
         self.code += '.class public %s' % self.name + '\n'
         self.code += '.super java/lang/Object' + '\n'
         self.code += '.method public <init>()V' + '\n'
@@ -39,31 +39,37 @@ class MiniJavaPrintListener(MinijavaListener):
         self.code += '.method public static main([Ljava/lang/String;)V' + '\n'
         self.code += '.limit stack 10000' + '\n'
 
-    def exitGoal(self, ctx:MinijavaParser.GoalContext):
+    def exitMainClass(self, ctx: MinijavaParser.MainClassContext):
         self.code += "return" + '\n'
         self.code += ".end method" + '\n'
 
-    def exitAddExpression(self, ctx:MinijavaParser.AddExpressionContext):
+
+    def exitPowExpression(self, ctx:MinijavaParser.PowExpressionContext):
+        #todo implement
         print()
-        print("enterAddExpression")
-        self.code += "iadd" + '\n'
+        print("exitPowExpression")
+        self.code += "" + '\n'
 
     def exitMulExpression(self, ctx:MinijavaParser.MulExpressionContext):
         print()
-        print("enterMulExpression")
+        print("exitMulExpression")
         self.code += "imul" + '\n'
 
-    def exitSubExpression(self, ctx:MinijavaParser.SubExpressionContext):
-        print()
-        print("enterSubExpression")
-        self.code += "isub" + '\n'
+    def exitBasicMathExpression(self, ctx:MinijavaParser.BasicMathExpressionContext):
+        print("exitBasicMathExpression")
+        type = ctx.getChild(1).getText()
+        if type == '+':
+            self.code += "iadd" + '\n'
+        elif type == '-':
+            self.code += "isub" + '\n'
 
-    def exitIntLitExpression(self, ctx:MinijavaParser.IntLitExpressionContext):
+    def enterIntLitExpression(self, ctx:MinijavaParser.IntLitExpressionContext):
         print()
 
         literal = ctx.getChild(0).getText()
         print("enterIntLitExpression %s" % literal)
         self.code += "ldc %s" % literal + '\n'
+
 
     
     def enterVarDeclaration(self, ctx:MinijavaParser.VarDeclarationContext):
@@ -78,11 +84,7 @@ class MiniJavaPrintListener(MinijavaListener):
         print()
         print("enterAndExpression")
         self.code += ""
-        
-    def enterPowExpression(self, ctx:MinijavaParser.PowExpressionContext):
-        print()
-        print("enterPowExpression")
-        self.code += ""
+
 
 
     def enterPrintStatement(self, ctx: MinijavaParser.PrintStatementContext):
