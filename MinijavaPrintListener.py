@@ -2,6 +2,21 @@ from grammer.MinijavaListener import MinijavaListener
 from grammer.MinijavaParser import MinijavaParser
 
 
+def keyboard(banner=None):
+    import code, sys
+
+    # use exception trick to pick up the current frame
+    try:
+        raise None
+    except:
+        frame = sys.exc_info()[2].tb_frame.f_back
+
+    # evaluate commands in current namespace
+    namespace = frame.f_globals.copy()
+    namespace.update(frame.f_locals)
+
+    code.interact(banner=banner, local=namespace)
+
 class MiniJavaPrintListener(MinijavaListener):
     def __init__(self, name):
         super(MinijavaListener, self).__init__()
@@ -43,6 +58,12 @@ class MiniJavaPrintListener(MinijavaListener):
         print("enterSubExpression")
         self.code += "isub"
 
+    def enterIntLitExpression(self, ctx:MinijavaParser.IntLitExpressionContext):
+        print()
+        print("enterIntLitExpression")
+        literal = ctx.getChild(0).getText()
+        self.code += "ldc %s" % literal + '\n'
+
     
     def enterVarDeclaration(self, ctx:MinijavaParser.VarDeclarationContext):
         print()
@@ -61,3 +82,10 @@ class MiniJavaPrintListener(MinijavaListener):
         print()
         print("enterPowExpression")
         self.code += ""
+
+
+    def enterPrintStatement(self, ctx: MinijavaParser.PrintStatementContext):
+        self.code += "getstatic java/lang/System/out Ljava/io/PrintStream;" + '\n'
+
+    def exitPrintStatement(self, ctx:MinijavaParser.PrintStatementContext):
+        self.code += "invokevirtual java/io/PrintStream/println(I)V" + '\n'

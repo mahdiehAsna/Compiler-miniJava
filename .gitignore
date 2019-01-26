@@ -116,3 +116,7 @@ dmypy.json
 
 # ide files
 .idea
+
+# antlr automate created files
+grammer/*
+!grammer/*.g4
