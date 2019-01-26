@@ -6,7 +6,12 @@ from MinijavaPrintListener import MiniJavaPrintListener
 
 
 def main(argv):
-    file = open('sample/math.minijava')
+
+    file_addr = argv[1]
+    file_name = file_addr.split('/')[-1]
+    name = file_name.split('.')[0]
+
+    file = open(file_addr)
     text = file.read()
 
     input = InputStream(text)
@@ -16,9 +21,14 @@ def main(argv):
     parser = MinijavaParser(stream)
     tree = parser.goal()
 
-    printer = MiniJavaPrintListener('math')
+    printer = MiniJavaPrintListener(name)
     walker = ParseTreeWalker()
     walker.walk(printer, tree)
+    bytecode = printer.get_bytecode()
+
+    output = open('intermediateCode/' + name + '.j', 'w')
+
+    output.write(bytecode)
 
 
 if __name__ == '__main__':
