@@ -94,11 +94,8 @@ expression
 |   expression TIMES expression
 # mulExpression
 
-|   expression PLUS expression
-# addExpression
-
-|   expression MINUS expression
-# subExpression
+|   expression (PLUS|MINUS) expression
+# basicMathExpression
 
 |   expression LT expression
 # ltExpression

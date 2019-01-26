@@ -120,3 +120,8 @@ dmypy.json
 # antlr automate created files
 grammer/*
 !grammer/*.g4
+grun/
+
+# generated sample programs
+intermediateCode/
+output/
