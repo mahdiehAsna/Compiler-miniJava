@@ -27,11 +27,17 @@ class MiniJavaPrintListener(MinijavaListener):
         self.code += "return" + '\n'
         self.code += ".end method" + '\n'
 
-    def enterAddExpression(self, ctx:MinijavaParser.GoalContext)
+    def enterAddExpression(self, ctx:MinijavaParser.GoalContext):
         self.code += "iadd" + '\n'
-        print("\n enterAddExpression")
+        print()
+        print("enterAddExpression")
 
     def enterMulExpression(self, ctx:MinijavaParser.GoalContext):
         print()
         print("enterMulExpression")
+        self.code += ""
+
+    def enterSubExpression(self, ctx:MinijavaParser.GoalContext):
+        print()
+        print("enterSubExpression")
         self.code += ""
