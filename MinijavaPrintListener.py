@@ -19,7 +19,7 @@ def keyboard(banner=None):
 
 class MiniJavaPrintListener(MinijavaListener):
     def __init__(self, name):
-        super(MinijavaListener, self).__init__()
+        super().__init__()
         self.code = ""
         self.name = name
         self.block_number = 0
@@ -44,24 +44,25 @@ class MiniJavaPrintListener(MinijavaListener):
         self.code += ".end method" + '\n'
 
     def exitAddExpression(self, ctx:MinijavaParser.AddExpressionContext):
-        self.code += "iadd" + '\n'
         print()
         print("enterAddExpression")
+        self.code += "iadd" + '\n'
 
     def exitMulExpression(self, ctx:MinijavaParser.MulExpressionContext):
         print()
         print("enterMulExpression")
-        self.code += "imul"
+        self.code += "imul" + '\n'
 
     def exitSubExpression(self, ctx:MinijavaParser.SubExpressionContext):
         print()
         print("enterSubExpression")
-        self.code += "isub"
+        self.code += "isub" + '\n'
 
-    def enterIntLitExpression(self, ctx:MinijavaParser.IntLitExpressionContext):
+    def exitIntLitExpression(self, ctx:MinijavaParser.IntLitExpressionContext):
         print()
-        print("enterIntLitExpression")
+
         literal = ctx.getChild(0).getText()
+        print("enterIntLitExpression %s" % literal)
         self.code += "ldc %s" % literal + '\n'
 
     
