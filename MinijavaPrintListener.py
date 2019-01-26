@@ -30,4 +30,8 @@ class MiniJavaPrintListener(MinijavaListener):
     def enterAddExpression(self, ctx:MinijavaParser.GoalContext)
         self.code += "iadd" + '\n'
         print("\n enterAddExpression")
-        
+
+    def enterMulExpression(self, ctx:MinijavaParser.GoalContext):
+        print()
+        print("enterMulExpression")
+        self.code += ""
