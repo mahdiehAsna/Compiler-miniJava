@@ -18,18 +18,41 @@ def keyboard(banner=None):
     code.interact(banner=banner, local=namespace)
 
 class MiniJavaPrintListener(MinijavaListener):
-    def __init__(self, name):
+    def __init__(self, symbolTable):
         super().__init__()
+        self.currentClass = ""
+        self.currentMethodType = ""
+        self.lastExpressionType = ""
+        self.codeStore = {}
         self.code = ""
-        self.name = name
+
+        self.symbolTable = symbolTable
+
         self.block_number = 0
         self.variables = {}
 
+
     def get_bytecode(self):
-        return self.code
+        return self.codeStore
+
+    @staticmethod
+    def get_representation(s_type):
+        if s_type == 'int':
+            return 'I'
+        if s_type == 'boolean':
+            return 'Z'
+
+    @staticmethod
+    def get_return_by_type(s_type):
+        #todo implement array
+        if s_type == 'int':
+            return 'ireturn'
+        if s_type == 'boolean':
+            return 'ireturn'
 
     def enterMainClass(self, ctx:MinijavaParser.MainClassContext):
-        self.code += '.class public %s' % self.name + '\n'
+        self.currentClass = ctx.getChild(1).getText()
+        self.code += '.class public %s' % self.currentClass + '\n'
         self.code += '.super java/lang/Object' + '\n'
         self.code += '.method public <init>()V' + '\n'
         self.code += 'aload_0' + '\n'
@@ -42,7 +65,71 @@ class MiniJavaPrintListener(MinijavaListener):
     def exitMainClass(self, ctx: MinijavaParser.MainClassContext):
         self.code += "return" + '\n'
         self.code += ".end method" + '\n'
+        self.codeStore[self.currentClass] = self.code
+        self.code = ""
 
+    def enterClassDeclaration(self, ctx:MinijavaParser.ClassDeclarationContext):
+        print("enterClassDeclaration")
+        self.currentClass = ctx.getChild(1).getText()
+        self.code += '.class public %s' % self.currentClass + '\n'
+        self.code += '.super java/lang/Object' + '\n'
+        self.code += '.method public <init>()V' + '\n'
+        self.code += 'aload_0' + '\n'
+        self.code += 'invokenonvirtual java/lang/Object/<init>()V' + '\n'
+        self.code += 'return' + '\n'
+        self.code += '.end method' + '\n'
+
+    def exitClassDeclaration(self, ctx:MinijavaParser.ClassDeclarationContext):
+        self.codeStore[self.currentClass] = self.code
+        self.code = ""
+
+    def enterMethodDeclaration(self, ctx:MinijavaParser.MethodDeclarationContext):
+        self.currentMethodType = ctx.getChild(1).getText()
+        method_name = ctx.getChild(2).getText()
+
+        self.code += '.method public %s' % method_name
+
+        if ctx.getChild(4).getText() == ')':
+            return_type_representation = self.get_representation(self.currentMethodType)
+            self.code += '()%s' % return_type_representation + '\n'
+
+    def exitMethodDeclaration(self, ctx: MinijavaParser.MethodDeclarationContext):
+        self.code += '.end method' + '\n'
+
+    def enterParameterList(self, ctx:MinijavaParser.ParameterListContext):
+        self.code += '('
+
+    def exitParameterList(self, ctx: MinijavaParser.ParameterListContext):
+        return_type_representation = self.get_representation(self.currentMethodType)
+        self.code += ')%s' % return_type_representation + '\n'
+
+    def enterMethodBody(self, ctx:MinijavaParser.MethodBodyContext):
+        self.code += '.limit stack 10000' + '\n'
+        #todo implement .limit locals
+        self.code += ''
+
+    def exitMethodBody(self, ctx:MinijavaParser.MethodBodyContext):
+        self.code += self.get_return_by_type(self.currentMethodType) + '\n'
+
+    def enterObjectInstantiationExpression(self, ctx:MinijavaParser.ObjectInstantiationExpressionContext):
+        object_class_name = ctx.getChild(1).getText()
+        self.code += 'new %s' % object_class_name + '\n'
+        self.code += 'dup' + '\n'
+        self.code += 'invokespecial %s/<init>()V' % object_class_name + '\n'
+
+    def exitObjectInstantiationExpression(self, ctx:MinijavaParser.ObjectInstantiationExpressionContext):
+        object_class_name = ctx.getChild(1).getText()
+        self.lastExpressionType = object_class_name
+
+    def exitMethodCallExpression(self, ctx: MinijavaParser.MethodCallExpressionContext):
+        #todo implement method inputs
+        method_name = ctx.getChild(2).getText()
+        print("gi")
+        print(self.lastExpressionType)
+        print(method_name)
+        class_properties = self.symbolTable[self.lastExpressionType][method_name]
+        return_type_representation = self.get_representation(class_properties["type"])
+        self.code += 'invokevirtual %s/%s(%s)%s' % (self.lastExpressionType, method_name, '', return_type_representation) + '\n'
 
     def exitPowExpression(self, ctx:MinijavaParser.PowExpressionContext):
         #todo implement
@@ -64,8 +151,6 @@ class MiniJavaPrintListener(MinijavaListener):
             self.code += "isub" + '\n'
 
     def enterIntLitExpression(self, ctx:MinijavaParser.IntLitExpressionContext):
-        print()
-
         literal = ctx.getChild(0).getText()
         print("enterIntLitExpression %s" % literal)
         self.code += "ldc %s" % literal + '\n'

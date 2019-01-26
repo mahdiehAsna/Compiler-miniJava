@@ -11,7 +11,7 @@ intermediateCode/%.j: sample/%.minijava
 	cd output; java $@
 
 antlr4python:
-	$(ANTLR4) -Dlanguage=Python3 grammer/Minijava.g4
+	$(ANTLR4) -Dlanguage=Python3 -visitor grammer/Minijava.g4
 
 antlr4grun:
 	$(ANTLR4) -Xexact-output-dir -o grun grammer/Minijava.g4

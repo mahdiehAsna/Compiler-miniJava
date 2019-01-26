@@ -18,24 +18,24 @@ localDeclaration
 :	varDeclaration ;
 
 varDeclaration
-:	s_type Identifier ';';
+:	r_type Identifier ';';
 
 methodDeclaration
-:	'public' s_type Identifier '(' parameterList? ')' '{' methodBody '}';
+:	'public' r_type Identifier '(' parameterList? ')' '{' methodBody '}';
 
 parameterList
 :   parameter (',' parameter)*
 ;
 
 parameter
-:   s_type Identifier
+:   r_type Identifier
 ;
 
 methodBody
 :	localDeclaration* statement* RETURN expression ';'
 ;
 
-s_type
+r_type
 :	'int' '[' ']'
 |	'boolean'
 |	'int'

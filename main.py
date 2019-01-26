@@ -3,6 +3,8 @@ from antlr4 import *
 from grammer.MinijavaLexer import MinijavaLexer
 from grammer.MinijavaParser import MinijavaParser
 from MinijavaPrintListener import MiniJavaPrintListener
+from MinijavaErrorListener import MinijavaErrorListener
+from MinijavaSymbolVisitor import MinijavaSymbolVisitor
 
 
 def main(argv):
@@ -16,19 +18,27 @@ def main(argv):
 
     input = InputStream(text)
     lexer = MinijavaLexer(input)
+    lexer.addErrorListener(MinijavaErrorListener())
+
     stream = CommonTokenStream(lexer)
 
     parser = MinijavaParser(stream)
     tree = parser.goal()
 
-    printer = MiniJavaPrintListener(name)
+    visitor = MinijavaSymbolVisitor()
+    visitor.visitGoal(tree)
+
+    symbol_table = visitor.get_symbol_table()
+    print(symbol_table)
+
+    printer = MiniJavaPrintListener(symbol_table)
     walker = ParseTreeWalker()
     walker.walk(printer, tree)
-    bytecode = printer.get_bytecode()
+    codeStore = printer.get_bytecode()
 
-    output = open('intermediateCode/' + name + '.j', 'w')
-
-    output.write(bytecode)
+    for className, classCode in codeStore.items():
+        output = open('intermediateCode/' + className + '.j', 'w')
+        output.write(classCode)
 
 
 if __name__ == '__main__':

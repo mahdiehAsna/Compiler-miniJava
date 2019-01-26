@@ -1,0 +1,12 @@
+class class1{
+    public static void main(String[] a) {
+	System.out.println(new Fixed().fix());
+    }
+}
+
+class Fixed{
+
+    public int fix(){
+	    return 5;
+    }
+}
