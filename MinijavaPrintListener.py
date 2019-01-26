@@ -9,6 +9,9 @@ class MiniJavaPrintListener(MinijavaListener):
         self.block_number = 0
         self.variables = {}
 
+    def get_bytecode(self):
+        return self.code
+
     def enterGoal(self, ctx: MinijavaParser.GoalContext):
         self.code += '.class public %s' % self.name + '\n'
         self.code += '.super java/lang/Object' + '\n'
