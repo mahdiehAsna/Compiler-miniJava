@@ -1,4 +1,5 @@
-from grammer import MinijavaListener, MinijavaParser
+from grammer.MinijavaListener import MinijavaListener
+from grammer.MinijavaParser import MinijavaParser
 
 
 class MiniJavaPrintListener(MinijavaListener):
@@ -40,7 +41,7 @@ class MiniJavaPrintListener(MinijavaListener):
     def exitSubExpression(self, ctx:MinijavaParser.SubExpressionContext):
         print()
         print("enterSubExpression")
-    self.code += "isub"
+        self.code += "isub"
 
     
     def enterVarDeclaration(self, ctx:MinijavaParser.VarDeclarationContext):
@@ -60,4 +61,3 @@ class MiniJavaPrintListener(MinijavaListener):
         print()
         print("enterPowExpression")
         self.code += ""
-
