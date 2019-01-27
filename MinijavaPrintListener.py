@@ -25,6 +25,7 @@ class MiniJavaPrintListener(MinijavaListener):
         self.lastExpressionType = ""
         self.codeStore = {}
         self.code = ""
+        self.isInitialized = False
 
         self.symbolTable = symbolTable
 
@@ -70,20 +71,31 @@ class MiniJavaPrintListener(MinijavaListener):
 
     def enterClassDeclaration(self, ctx:MinijavaParser.ClassDeclarationContext):
         print("enterClassDeclaration")
+        self.isInitialized = False
         self.currentClass = ctx.getChild(1).getText()
         self.code += '.class public %s' % self.currentClass + '\n'
         self.code += '.super java/lang/Object' + '\n'
-        self.code += '.method public <init>()V' + '\n'
-        self.code += 'aload_0' + '\n'
-        self.code += 'invokenonvirtual java/lang/Object/<init>()V' + '\n'
-        self.code += 'return' + '\n'
-        self.code += '.end method' + '\n'
 
     def exitClassDeclaration(self, ctx:MinijavaParser.ClassDeclarationContext):
         self.codeStore[self.currentClass] = self.code
         self.code = ""
 
+    #todo other filed types
+    def enterFieldDeclaration(self, ctx:MinijavaParser.FieldDeclarationContext):
+        field_name = ctx.getChild(0).getChild(1).getText()
+        field_properties = self.symbolTable[self.currentClass][field_name]
+        field_type = field_properties['return_type']
+        field_type_representation = self.get_representation(field_type)
+        if field_type == 'int':
+            self.code += '.field private %s %s' % (field_name, field_type_representation) + '\n'
+
     def enterMethodDeclaration(self, ctx:MinijavaParser.MethodDeclarationContext):
+        if not self.isInitialized:
+            self.code += '.method public <init>()V' + '\n'
+            self.code += 'aload_0' + '\n'
+            self.code += 'invokenonvirtual java/lang/Object/<init>()V' + '\n'
+            self.code += 'return' + '\n'
+            self.code += '.end method' + '\n'
         self.currentMethodType = ctx.getChild(1).getText()
         method_name = ctx.getChild(2).getText()
 
@@ -128,8 +140,33 @@ class MiniJavaPrintListener(MinijavaListener):
         print(self.lastExpressionType)
         print(method_name)
         class_properties = self.symbolTable[self.lastExpressionType][method_name]
-        return_type_representation = self.get_representation(class_properties["type"])
+        return_type_representation = self.get_representation(class_properties["return_type"])
         self.code += 'invokevirtual %s/%s(%s)%s' % (self.lastExpressionType, method_name, '', return_type_representation) + '\n'
+
+    def enterLocalDeclaration(self, ctx:MinijavaParser.LocalDeclarationContext):
+        #todo
+        var_name = ctx.getChild(1).getText()
+        var_properties= self.symbolTable[self.currentClass][var_name]
+        if var_properties['return_type'] == 'int':
+            self.code += 'bipush 0' + '\n'
+            self.code += 'istore' + '\n'
+
+    def enterVariableAssignmentStatement(self, ctx:MinijavaParser.VariableAssignmentStatementContext):
+        name = ctx.getChild(0).getText()
+        properties = self.symbolTable[self.currentClass][name]
+        type = properties['type']
+        if type == 'field':
+            self.code += 'aload 0 ; push this' + '\n'
+
+    #todo var type
+    def exitVariableAssignmentStatement(self, ctx:MinijavaParser.VariableAssignmentStatementContext):
+        name = ctx.getChild(0).getText()
+        properties = self.symbolTable[self.currentClass][name]
+        type = properties['type']
+        if type == 'field':
+            return_type = properties['return_type']
+            representation = self.get_representation(return_type)
+            self.code += 'putfield %s/%s %s' % (self.currentClass, name, representation) + '\n'
 
     def exitPowExpression(self, ctx:MinijavaParser.PowExpressionContext):
         #todo implement
@@ -155,10 +192,22 @@ class MiniJavaPrintListener(MinijavaListener):
         print("enterIntLitExpression %s" % literal)
         self.code += "ldc %s" % literal + '\n'
 
+    def enterIdentifierExpression(self, ctx:MinijavaParser.IdentifierExpressionContext):
+        name = ctx.getChild(0).getText()
+        properties = self.symbolTable[self.currentClass][name]
+        type = properties['type']
+        if type == 'field':
+            return_type = properties['return_type']
+            representation = self.get_representation(return_type)
+            self.code += 'aload 0 ; push this' + '\n'
+            self.code += 'getfield %s/%s %s' % (self.currentClass, name, representation) + '\n'
 
-    
-    def enterVarDeclaration(self, ctx:MinijavaParser.VarDeclarationContext):
-        print()
+    def enterPrintStatement(self, ctx: MinijavaParser.PrintStatementContext):
+        self.code += "getstatic java/lang/System/out Ljava/io/PrintStream;" + '\n'
+
+    def exitPrintStatement(self, ctx:MinijavaParser.PrintStatementContext):
+        self.code += "invokevirtual java/io/PrintStream/println(I)V" + '\n'
+
 
     def enterLtExpression(self, ctx:MinijavaParser.LtExpressionContext):
         print()
@@ -169,11 +218,3 @@ class MiniJavaPrintListener(MinijavaListener):
         print()
         print("enterAndExpression")
         self.code += ""
-
-
-
-    def enterPrintStatement(self, ctx: MinijavaParser.PrintStatementContext):
-        self.code += "getstatic java/lang/System/out Ljava/io/PrintStream;" + '\n'
-
-    def exitPrintStatement(self, ctx:MinijavaParser.PrintStatementContext):
-        self.code += "invokevirtual java/io/PrintStream/println(I)V" + '\n'
