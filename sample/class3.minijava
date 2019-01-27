@@ -1,0 +1,15 @@
+class class3{
+    public static void main(String[] a) {
+	System.out.println(new Fixed().fix());
+    }
+}
+
+class Fixed{
+
+    int fixula;
+
+    public int fix(){
+        fixula = 10 * 7;
+	    return fixula;
+    }
+}

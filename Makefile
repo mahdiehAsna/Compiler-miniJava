@@ -1,15 +1,6 @@
 ANTLR4=java -jar /usr/local/lib/antlr-4.7.2-complete.jar
 GRUN=java org.antlr.v4.gui.TestRig
 
-output/%.class: intermediateCode/%.j
-	jasmin -d output $^
-
-intermediateCode/%.j: sample/%.minijava
-	python main.py $^
-
-%: output/%.class
-	cd output; java $@
-
 antlr4python:
 	$(ANTLR4) -Dlanguage=Python3 -visitor grammer/Minijava.g4
 
@@ -21,5 +12,9 @@ grunAmbig:
 	cd grun; $(GRUN) Minijava goal -diagnostics < ../sample/simple3.minijava
 
 clean:
-	rm intermediateCode/*.j
-	rm output/*.class
+	rm intermediateCode/*.j || true
+	rm output/*.class || true
+
+%:
+	python build.py sample/$@.minijava
+	cd output; java $@
