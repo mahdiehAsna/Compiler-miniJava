@@ -5,6 +5,7 @@ class MinijavaSymbolVisitor(MinijavaVisitor):
     def __init__(self):
         super().__init__()
         self.currentClass = ""
+        self.currentMethod = ""
         self.symbolTable = {}
         self.variables = {}
 
@@ -40,9 +41,23 @@ class MinijavaSymbolVisitor(MinijavaVisitor):
     def visitMethodDeclaration(self, ctx:MinijavaParser.MethodDeclarationContext):
         method_type = ctx.getChild(1).getText()
         method_name = ctx.getChild(2).getText()
-        self.symbolTable[self.currentClass][method_name] = {type: "method", "return_type": method_type, "inputes": []}
+        self.currentMethod = method_name
+        self.symbolTable[self.currentClass][method_name] = {"type": "method", "return_type": method_type, "inputs": []}
 
         return self.visitChildren(ctx)
+
+    def visitParameterList(self, ctx:MinijavaParser.ParameterListContext):
+        for child in ctx.getChildren():
+            if child.getText() != ',':
+                param_type = child.getChild(0).getText()
+                param_name = child.getChild(1).getText()
+                param_prop = (param_type, param_name)
+                print(param_prop, "ZZZZZZ")
+                self.symbolTable[self.currentClass][self.currentMethod]["inputs"].append(param_prop)
+                var_type = param_type
+                var_name = param_name
+                var_id = self.new_variable(var_name)
+                self.symbolTable[self.currentClass][var_name] = {"type": "var", "return_type": var_type, "id": var_id}
 
     # todo implement input param
     def visitParameter(self, ctx: MinijavaParser.ParameterContext):

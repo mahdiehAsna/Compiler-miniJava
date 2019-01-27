@@ -1,0 +1,15 @@
+class class4{
+    public static void main(String[] a) {
+	System.out.println(new Dynamic().twice(7));
+    }
+}
+
+class Dynamic{
+
+    int fixula;
+
+    public int twice(int b){
+        fixula = 'string';
+	    return fixula * b;
+    }
+}
